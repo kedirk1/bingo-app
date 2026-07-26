@@ -3,49 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoodBingo Mini App</title>
+  <title>Nigat Gashena Bingo</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #0f172a; color: #fff; text-align: center; padding: 10px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #0b132b; color: #fff; text-align: center; padding: 10px; }
     
     /* Top Bar */
-    .header { display: flex; justify-content: space-between; background: #1e293b; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; }
-    .badge { background: #eab308; color: #000; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
-    .balance { background: #22c55e; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: #1c2541; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; font-weight: bold; }
+    .badge { background: #ffc107; color: #000; padding: 4px 8px; border-radius: 6px; font-size: 11px; }
+    .derash-box { color: #4cc9f0; }
+    .balance { background: #2ec4b6; padding: 4px 10px; border-radius: 6px; color: #000; }
 
     /* Selection Screen */
     #selection-screen { display: block; }
-    .grid-300 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-height: 320px; overflow-y: auto; background: #1e293b; padding: 8px; border-radius: 8px; }
-    .num-btn { background: #334155; border: none; color: #fff; padding: 8px 0; font-weight: bold; border-radius: 4px; cursor: pointer; }
-    .num-btn.selected { background: #3b82f6; }
-    .num-btn.disabled { background: #475569; opacity: 0.4; cursor: not-allowed; }
+    .grid-300 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; max-height: 240px; overflow-y: auto; background: #1c2541; padding: 8px; border-radius: 8px; }
+    .num-btn { background: #3a506b; border: none; color: #fff; padding: 8px 0; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .num-btn.selected { background: #3a86ff; box-shadow: 0 0 8px #3a86ff; }
+    .num-btn.sold { background: #2b2d42; color: #8d99ae; cursor: not-allowed; text-decoration: line-through; }
     
-    .slots { display: flex; gap: 10px; margin-top: 15px; }
-    .slot { flex: 1; border: 2px dashed #475569; padding: 15px; border-radius: 8px; font-size: 12px; color: #94a3b8; }
-    .start-btn { width: 100%; background: #22c55e; border: none; color: #fff; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 15px; cursor: pointer; }
+    .slots { display: flex; gap: 10px; margin-top: 12px; }
+    .slot { flex: 1; border: 2px dashed #3a506b; padding: 10px; border-radius: 8px; font-size: 12px; background: #1c2541; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .slot-title { font-weight: bold; color: #4cc9f0; margin-bottom: 6px; }
+
+    /* Card Mini Preview */
+    .mini-card { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 100%; background: #0b132b; padding: 4px; border-radius: 4px; }
+    .mini-cell { background: #3a506b; color: #fff; font-size: 9px; padding: 3px 0; border-radius: 2px; font-weight: bold; }
+    .mini-cell.star { background: #ffc107; color: #000; }
+
+    .start-btn { width: 100%; background: #2ec4b6; border: none; color: #000; padding: 14px; font-size: 17px; font-weight: bold; border-radius: 8px; margin-top: 12px; cursor: pointer; }
 
     /* Game Screen */
     #game-screen { display: none; }
-    .caller-box { background: #ef4444; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; margin: 10px auto; border: 4px solid #fff; }
+    .caller-box { background: #e63946; width: 75px; height: 75px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; margin: 10px auto; border: 4px solid #fff; box-shadow: 0 0 15px rgba(230,57,70,0.6); }
     
-    .bingo-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #1e293b; padding: 5px; border-radius: 8px; font-size: 11px; }
-    .bingo-header { font-weight: bold; padding: 4px; color: #f59e0b; }
-    .board-cell { background: #334155; padding: 4px 0; border-radius: 2px; }
-    .board-cell.called { background: #22c55e; color: #fff; font-weight: bold; }
+    .bingo-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; background: #1c2541; padding: 6px; border-radius: 8px; font-size: 11px; }
+    .bingo-header { font-weight: bold; padding: 4px; color: #ffc107; font-size: 14px; }
+    .board-cell { background: #3a506b; padding: 4px 0; border-radius: 3px; }
+    .board-cell.called { background: #2ec4b6; color: #000; font-weight: bold; }
 
-    /* Card Layout */
-    .player-card { background: #fff; color: #000; border-radius: 8px; padding: 8px; margin-top: 15px; }
+    /* Full Card Layout */
+    .player-card { background: #fff; color: #000; border-radius: 8px; padding: 8px; margin-top: 12px; }
     .card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 5px; }
     .card-cell { background: #f1f5f9; padding: 8px 0; border-radius: 4px; font-weight: bold; font-size: 14px; }
-    .card-cell.hit { background: #eab308; color: #000; }
-    .card-cell.star { background: #f59e0b; color: #fff; }
+    .card-cell.hit { background: #ffc107; color: #000; }
+    .card-cell.star { background: #ffc107; color: #000; }
 
     /* Winner Modal */
-    #winner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+    #winner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 100; }
     .modal-content { background: #fff; color: #000; padding: 20px; border-radius: 12px; width: 85%; text-align: center; }
-    .winner-title { color: #22c55e; font-size: 22px; font-weight: bold; }
-    .prize { font-size: 26px; font-weight: bold; color: #d97706; margin: 10px 0; }
+    .winner-title { color: #2ec4b6; font-size: 20px; font-weight: bold; margin: 8px 0; }
+    .prize { font-size: 24px; font-weight: bold; color: #e63946; margin: 10px 0; }
   </style>
 </head>
 <body>
@@ -53,22 +61,27 @@
   <!-- Top Header Bar -->
   <div class="header">
     <div class="badge">ROOM VIP 💰</div>
-    <div>SOLD: <span id="sold-count">29</span></div>
-    <div>DERASH: <span id="derash-amount">2336</span> ETB</div>
+    <div class="derash-box">ደራሽ፦ <span id="derash-amount">0</span> ETB</div>
     <div class="balance">0.00 ETB</div>
   </div>
 
   <!-- 1. Selection Screen -->
   <div id="selection-screen">
-    <p style="margin-bottom: 8px; font-size: 14px;">ካርቴላ ይምረጡ (ከ 1 - 300):</p>
+    <p style="margin-bottom: 8px; font-size: 14px; color: #4cc9f0;">ካርቴላ ይምረጡ (ከ 1 - 300):</p>
     <div class="grid-300" id="grid-300"></div>
 
     <div class="slots">
-      <div class="slot" id="slot-1">+ SLOT 1 EMPTY</div>
-      <div class="slot" id="slot-2">+ SLOT 2 EMPTY</div>
+      <div class="slot" id="slot-1">
+        <div class="slot-title">SLOT 1 EMPTY</div>
+        <div style="font-size: 11px; color: #8d99ae;">ካርቴላ ሲመርጡ እዚህ ይታያል</div>
+      </div>
+      <div class="slot" id="slot-2">
+        <div class="slot-title">SLOT 2 EMPTY</div>
+        <div style="font-size: 11px; color: #8d99ae;">ተጨማሪ ካርቴላ</div>
+      </div>
     </div>
 
-    <button class="start-btn" onclick="startGame()">ጨዋታ ጀምር (10 ETB)</button>
+    <button class="start-btn" id="start-btn" onclick="startGame()">ጨዋታ ጀምር (10 ETB)</button>
   </div>
 
   <!-- 2. Live Game Screen -->
@@ -82,7 +95,7 @@
 
     <!-- Selected Player Card -->
     <div class="player-card">
-      <h4 id="card-title" style="color: #1e293b;">CARD #--</h4>
+      <h4 id="card-title" style="color: #1c2541;">CARD #--</h4>
       <div class="card-grid" id="card-grid"></div>
     </div>
   </div>
@@ -90,18 +103,47 @@
   <!-- 3. Winner Modal -->
   <div id="winner-modal">
     <div class="modal-content">
-      <h2 style="color: #ef4444;">1 አሸናፊ</h2>
-      <div class="winner-title" id="winner-name">Admas A has won!</div>
-      <p style="font-size: 12px; color: #64748b;">TOTAL PRIZE POOL</p>
-      <div class="prize"><span id="win-prize">2336</span> ETB</div>
+      <h2 style="color: #e63946;">🎉 ቢንጎ! አሸናፊ</h2>
+      <div class="winner-title" id="winner-name">አሽናፊ ተለይቷል!</div>
+      <p style="font-size: 12px; color: #64748b;">የተሸለመው ጠቅላላ ደራሽ</p>
+      <div class="prize"><span id="win-prize">0</span> ETB</div>
       <button class="start-btn" onclick="location.reload()">ቀጣይ ዙር</button>
     </div>
   </div>
 
   <script>
     let selectedCard = null;
+    let selectedNumbersGrid = [];
     let calledNumbers = [];
     let gameInterval = null;
+    let cardPrice = 10;
+
+    // Fixed Matrix Generator for each Card Number (1-300)
+    function generateCardNumbers(cardNum) {
+      let nums = [];
+      let seed = cardNum;
+      for (let c = 0; c < 5; c++) {
+        let min = c * 15 + 1;
+        let col = [];
+        for (let r = 0; r < 5; r++) {
+          if (c === 2 && r === 2) {
+            col.push('★');
+          } else {
+            let val = min + ((seed + r * 3 + c * 2) % 15);
+            col.push(val);
+          }
+        }
+        nums.push(col);
+      }
+      // Transpose to Row-Major for display
+      let rowMajor = [];
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 5; c++) {
+          rowMajor.push(nums[c][r]);
+        }
+      }
+      return rowMajor;
+    }
 
     // Generate 300 Buttons
     const gridEl = document.getElementById('grid-300');
@@ -109,12 +151,7 @@
       let btn = document.createElement('button');
       btn.className = 'num-btn';
       btn.innerText = i;
-      // Randomly disable some numbers as "SOLD"
-      if ([1, 3, 12, 19, 28, 35, 45, 66, 73, 83, 92].includes(i)) {
-        btn.classList.add('disabled');
-      } else {
-        btn.onclick = () => selectCard(i, btn);
-      }
+      btn.onclick = () => selectCard(i, btn);
       gridEl.appendChild(btn);
     }
 
@@ -122,14 +159,29 @@
       document.querySelectorAll('.num-btn.selected').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       selectedCard = num;
-      document.getElementById('slot-1').innerText = `CARD #${num}`;
-      document.getElementById('slot-1').style.color = '#fff';
-      document.getElementById('slot-1').style.borderColor = '#3b82f6';
+
+      // Update DERASH Live Calculation (10 ETB per card)
+      document.getElementById('derash-amount').innerText = cardPrice;
+
+      // Render Mini Card Preview in Slot 1
+      selectedNumbersGrid = generateCardNumbers(num);
+      let slot1 = document.getElementById('slot-1');
+      slot1.innerHTML = `<div class="slot-title">CARD #${num}</div>`;
+      
+      let miniGrid = document.createElement('div');
+      miniGrid.className = 'mini-card';
+      selectedNumbersGrid.forEach(val => {
+        let cell = document.createElement('div');
+        cell.className = 'mini-cell' + (val === '★' ? ' star' : '');
+        cell.innerText = val;
+        miniGrid.appendChild(cell);
+      });
+      slot1.appendChild(miniGrid);
     }
 
     function startGame() {
       if (!selectedCard) {
-        alert('እባክዎን አስቀድመው ካርቴላ ይምረጡ!');
+        alert('እባክዎን መጀመሪያ ካርቴላ ይምረጡ!');
         return;
       }
       document.getElementById('selection-screen').style.display = 'none';
@@ -137,11 +189,10 @@
       document.getElementById('card-title').innerText = `CARD #${selectedCard}`;
       
       initBoard();
-      generateCardGrid();
+      renderFullCard();
       startCaller();
     }
 
-    // Render BINGO Main Board 1-75
     function initBoard() {
       const board = document.getElementById('bingo-board');
       for (let i = 1; i <= 75; i++) {
@@ -153,30 +204,24 @@
       }
     }
 
-    // Generate 5x5 Card Matrix
-    let myNumbers = [];
-    function generateCardGrid() {
+    function renderFullCard() {
       const cardGrid = document.getElementById('card-grid');
       cardGrid.innerHTML = '';
-      myNumbers = [14, 29, 32, 55, 73, 6, 26, 34, 50, 70, 7, 22, '★', 49, 65, 11, 21, 37, 51, 68, 2, 20, 43, 58, 69];
-      
-      myNumbers.forEach(num => {
+      selectedNumbersGrid.forEach(num => {
         let cell = document.createElement('div');
-        cell.className = 'card-cell';
-        if (num === '★') cell.classList.add('star');
+        cell.className = 'card-cell' + (num === '★' ? ' star' : '');
         cell.innerText = num;
         cell.id = `card-num-${num}`;
         cardGrid.appendChild(cell);
       });
     }
 
-    // Live Number Call Logic
     function startCaller() {
       let pool = Array.from({length: 75}, (_, i) => i + 1);
       pool.sort(() => Math.random() - 0.5);
 
       gameInterval = setInterval(() => {
-        if (pool.length === 0 || calledNumbers.length >= 15) {
+        if (pool.length === 0 || calledNumbers.length >= 20) {
           clearInterval(gameInterval);
           showWinner();
           return;
@@ -188,11 +233,9 @@
         let letter = num <= 15 ? 'B' : num <= 30 ? 'I' : num <= 45 ? 'N' : num <= 60 ? 'G' : 'O';
         document.getElementById('caller').innerText = `${letter}-${num}`;
 
-        // Highlight Board
         let bCell = document.getElementById(`board-${num}`);
         if (bCell) bCell.classList.add('called');
 
-        // Auto-hit Player Card
         let cCell = document.getElementById(`card-num-${num}`);
         if (cCell) cCell.classList.add('hit');
 
@@ -200,6 +243,7 @@
     }
 
     function showWinner() {
+      document.getElementById('win-prize').innerText = cardPrice;
       document.getElementById('winner-modal').style.display = 'flex';
     }
   </script>
