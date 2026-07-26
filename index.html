@@ -1,10 +1,106 @@
-      }
+<!DOCTYPE html>
+<html lang="am">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nigat Gashena Bingo</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      text-align: center;
+      margin: 0;
+      padding: 15px;
     }
+    h2 { color: #0088cc; margin-top: 5px; }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      max-width: 320px;
+      margin: 15px auto;
+      background: #222;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .card-cell {
+      background: #333;
+      padding: 12px 0;
+      font-weight: bold;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .card-cell.star { background: #ff9800; color: #000; }
+    .card-cell.hit { background: #4caf50; color: #fff; }
+    .caller-box {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 15px 0;
+      padding: 10px;
+      background: #0088cc;
+      border-radius: 8px;
+    }
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      font-size: 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: #222;
+      padding: 25px;
+      border-radius: 12px;
+      border: 2px solid #4caf50;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Nigat Gashena Bingo</h2>
+  <div class="caller-box" id="caller">Ready to Play!</div>
+  
+  <div class="card-grid" id="card-grid"></div>
+
+  <button onclick="startGame()">Start Game</button>
+
+  <div class="modal" id="winner-modal">
+    <div class="modal-content">
+      <h1 style="color: #4caf50;">🎉 BINGO! 🎉</h1>
+      <p>እንኳን ደስ አለዎት! አሸንፈዋል!</p>
+      <button onclick="location.reload()">እንደገና ተጫወት</button>
+    </div>
+  </div>
+
+  <script>
+    Telegram.WebApp.ready();
+
+    const selectedNumbers = [
+      5, 18, 35, 52, 68,
+      12, 24, 41, 58, 73,
+      8, 29, '★', 49, 61,
+      3, 21, 33, 55, 70,
+      14, 27, 44, 60, 75
+    ];
 
     function renderFullCard() {
       const cardGrid = document.getElementById('card-grid');
       cardGrid.innerHTML = '';
-      selectedNumbersGrid.forEach(num => {
+      selectedNumbers.forEach(num => {
         let cell = document.createElement('div');
         cell.className = 'card-cell' + (num === '★' ? ' star' : '');
         cell.innerText = num;
@@ -13,36 +109,28 @@
       });
     }
 
-    function startCaller() {
+    function startGame() {
       let pool = Array.from({length: 75}, (_, i) => i + 1);
       pool.sort(() => Math.random() - 0.5);
+      let calledNumbers = [];
 
-      gameInterval = setInterval(() => {
-        if (pool.length === 0 || calledNumbers.length >= 20) {
+      let gameInterval = setInterval(() => {
+        if (pool.length === 0 || calledNumbers.length >= 30) {
           clearInterval(gameInterval);
-          showWinner();
+          document.getElementById('winner-modal').style.display = 'flex';
           return;
         }
-
         let num = pool.pop();
         calledNumbers.push(num);
-        
         let letter = num <= 15 ? 'B' : num <= 30 ? 'I' : num <= 45 ? 'N' : num <= 60 ? 'G' : 'O';
         document.getElementById('caller').innerText = `${letter}-${num}`;
-
-        let bCell = document.getElementById(`board-${num}`);
-        if (bCell) bCell.classList.add('called');
-
+        
         let cCell = document.getElementById(`card-num-${num}`);
         if (cCell) cCell.classList.add('hit');
-
-      }, 2500);
+      }, 2000);
     }
 
-    function showWinner() {
-      document.getElementById('win-prize').innerText = cardPrice;
-      document.getElementById('winner-modal').style.display = 'flex';
-    }
+    renderFullCard();
   </script>
 </body>
 </html>
