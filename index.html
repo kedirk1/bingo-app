@@ -1,137 +1,207 @@
 <!DOCTYPE html>
 <html lang="am">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nigat Bingo Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            background-color: #0f172a;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 15px;
-        }
-        h1 {
-            color: #f59e0b;
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        .called-number {
-            font-size: 36px;
-            font-weight: bold;
-            background: #3b82f6;
-            color: white;
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            line-height: 80px;
-            margin: 15px auto;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-        }
-        .card {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            max-width: 320px;
-            margin: 0 auto;
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 12px;
-        }
-        .header {
-            font-weight: bold;
-            font-size: 20px;
-            padding: 8px 0;
-            color: #38bdf8;
-        }
-        .cell {
-            background: #334155;
-            border-radius: 8px;
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .cell.marked {
-            background: #10b981;
-            color: white;
-        }
-        .cell.free {
-            background: #f59e0b;
-            color: white;
-        }
-        .btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-top: 15px;
-            cursor: pointer;
-            width: 100%;
-            max-width: 320px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoodBingo Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #0f172a; color: #fff; text-align: center; padding: 10px; }
+    
+    /* Top Bar */
+    .header { display: flex; justify-content: space-between; background: #1e293b; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; }
+    .badge { background: #eab308; color: #000; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+    .balance { background: #22c55e; padding: 4px 8px; border-radius: 4px; font-weight: bold; }
+
+    /* Selection Screen */
+    #selection-screen { display: block; }
+    .grid-300 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; max-height: 320px; overflow-y: auto; background: #1e293b; padding: 8px; border-radius: 8px; }
+    .num-btn { background: #334155; border: none; color: #fff; padding: 8px 0; font-weight: bold; border-radius: 4px; cursor: pointer; }
+    .num-btn.selected { background: #3b82f6; }
+    .num-btn.disabled { background: #475569; opacity: 0.4; cursor: not-allowed; }
+    
+    .slots { display: flex; gap: 10px; margin-top: 15px; }
+    .slot { flex: 1; border: 2px dashed #475569; padding: 15px; border-radius: 8px; font-size: 12px; color: #94a3b8; }
+    .start-btn { width: 100%; background: #22c55e; border: none; color: #fff; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 15px; cursor: pointer; }
+
+    /* Game Screen */
+    #game-screen { display: none; }
+    .caller-box { background: #ef4444; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; margin: 10px auto; border: 4px solid #fff; }
+    
+    .bingo-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #1e293b; padding: 5px; border-radius: 8px; font-size: 11px; }
+    .bingo-header { font-weight: bold; padding: 4px; color: #f59e0b; }
+    .board-cell { background: #334155; padding: 4px 0; border-radius: 2px; }
+    .board-cell.called { background: #22c55e; color: #fff; font-weight: bold; }
+
+    /* Card Layout */
+    .player-card { background: #fff; color: #000; border-radius: 8px; padding: 8px; margin-top: 15px; }
+    .card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 5px; }
+    .card-cell { background: #f1f5f9; padding: 8px 0; border-radius: 4px; font-weight: bold; font-size: 14px; }
+    .card-cell.hit { background: #eab308; color: #000; }
+    .card-cell.star { background: #f59e0b; color: #fff; }
+
+    /* Winner Modal */
+    #winner-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+    .modal-content { background: #fff; color: #000; padding: 20px; border-radius: 12px; width: 85%; text-align: center; }
+    .winner-title { color: #22c55e; font-size: 22px; font-weight: bold; }
+    .prize { font-size: 26px; font-weight: bold; color: #d97706; margin: 10px 0; }
+  </style>
 </head>
 <body>
 
-    <h1>🎯 ጋሸና ቢንጎ</h1>
-    <div class="called-number" id="calledNo">--</div>
+  <!-- Top Header Bar -->
+  <div class="header">
+    <div class="badge">ROOM VIP 💰</div>
+    <div>SOLD: <span id="sold-count">29</span></div>
+    <div>DERASH: <span id="derash-amount">2336</span> ETB</div>
+    <div class="balance">0.00 ETB</div>
+  </div>
 
-    <div class="card" id="bingoCard">
-        <div class="header">B</div>
-        <div class="header">I</div>
-        <div class="header">N</div>
-        <div class="header">G</div>
-        <div class="header">O</div>
+  <!-- 1. Selection Screen -->
+  <div id="selection-screen">
+    <p style="margin-bottom: 8px; font-size: 14px;">ካርቴላ ይምረጡ (ከ 1 - 300):</p>
+    <div class="grid-300" id="grid-300"></div>
+
+    <div class="slots">
+      <div class="slot" id="slot-1">+ SLOT 1 EMPTY</div>
+      <div class="slot" id="slot-2">+ SLOT 2 EMPTY</div>
     </div>
 
-    <button class="btn" onclick="drawNumber()">ቁጥር አውጣ 🎲</button>
+    <button class="start-btn" onclick="startGame()">ጨዋታ ጀምር (10 ETB)</button>
+  </div>
 
-    <script>
-        window.Telegram.WebApp.ready();
+  <!-- 2. Live Game Screen -->
+  <div id="game-screen">
+    <div class="caller-box" id="caller">--</div>
 
-        const card = document.getElementById('bingoCard');
-        const ranges = [[1,15], [16,30], [31,45], [46,60], [61,75]];
+    <!-- BINGO Board -->
+    <div class="bingo-board" id="bingo-board">
+      <div class="bingo-header">B</div><div class="bingo-header">I</div><div class="bingo-header">N</div><div class="bingo-header">G</div><div class="bingo-header">O</div>
+    </div>
+
+    <!-- Selected Player Card -->
+    <div class="player-card">
+      <h4 id="card-title" style="color: #1e293b;">CARD #--</h4>
+      <div class="card-grid" id="card-grid"></div>
+    </div>
+  </div>
+
+  <!-- 3. Winner Modal -->
+  <div id="winner-modal">
+    <div class="modal-content">
+      <h2 style="color: #ef4444;">1 አሸናፊ</h2>
+      <div class="winner-title" id="winner-name">Admas A has won!</div>
+      <p style="font-size: 12px; color: #64748b;">TOTAL PRIZE POOL</p>
+      <div class="prize"><span id="win-prize">2336</span> ETB</div>
+      <button class="start-btn" onclick="location.reload()">ቀጣይ ዙር</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedCard = null;
+    let calledNumbers = [];
+    let gameInterval = null;
+
+    // Generate 300 Buttons
+    const gridEl = document.getElementById('grid-300');
+    for (let i = 1; i <= 300; i++) {
+      let btn = document.createElement('button');
+      btn.className = 'num-btn';
+      btn.innerText = i;
+      // Randomly disable some numbers as "SOLD"
+      if ([1, 3, 12, 19, 28, 35, 45, 66, 73, 83, 92].includes(i)) {
+        btn.classList.add('disabled');
+      } else {
+        btn.onclick = () => selectCard(i, btn);
+      }
+      gridEl.appendChild(btn);
+    }
+
+    function selectCard(num, btn) {
+      document.querySelectorAll('.num-btn.selected').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedCard = num;
+      document.getElementById('slot-1').innerText = `CARD #${num}`;
+      document.getElementById('slot-1').style.color = '#fff';
+      document.getElementById('slot-1').style.borderColor = '#3b82f6';
+    }
+
+    function startGame() {
+      if (!selectedCard) {
+        alert('እባክዎን አስቀድመው ካርቴላ ይምረጡ!');
+        return;
+      }
+      document.getElementById('selection-screen').style.display = 'none';
+      document.getElementById('game-screen').style.display = 'block';
+      document.getElementById('card-title').innerText = `CARD #${selectedCard}`;
+      
+      initBoard();
+      generateCardGrid();
+      startCaller();
+    }
+
+    // Render BINGO Main Board 1-75
+    function initBoard() {
+      const board = document.getElementById('bingo-board');
+      for (let i = 1; i <= 75; i++) {
+        let cell = document.createElement('div');
+        cell.className = 'board-cell';
+        cell.id = `board-${i}`;
+        cell.innerText = i;
+        board.appendChild(cell);
+      }
+    }
+
+    // Generate 5x5 Card Matrix
+    let myNumbers = [];
+    function generateCardGrid() {
+      const cardGrid = document.getElementById('card-grid');
+      cardGrid.innerHTML = '';
+      myNumbers = [14, 29, 32, 55, 73, 6, 26, 34, 50, 70, 7, 22, '★', 49, 65, 11, 21, 37, 51, 68, 2, 20, 43, 58, 69];
+      
+      myNumbers.forEach(num => {
+        let cell = document.createElement('div');
+        cell.className = 'card-cell';
+        if (num === '★') cell.classList.add('star');
+        cell.innerText = num;
+        cell.id = `card-num-${num}`;
+        cardGrid.appendChild(cell);
+      });
+    }
+
+    // Live Number Call Logic
+    function startCaller() {
+      let pool = Array.from({length: 75}, (_, i) => i + 1);
+      pool.sort(() => Math.random() - 0.5);
+
+      gameInterval = setInterval(() => {
+        if (pool.length === 0 || calledNumbers.length >= 15) {
+          clearInterval(gameInterval);
+          showWinner();
+          return;
+        }
+
+        let num = pool.pop();
+        calledNumbers.push(num);
         
-        // የካርቴላ ቁጥሮችን በዘፈቀደ መፍጠር
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col < 5; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                
-                if (row === 2 && col === 2) {
-                    cell.innerText = '★';
-                    cell.classList.add('free');
-                } else {
-                    const min = ranges[col][0];
-                    const max = ranges[col][1];
-                    const num = Math.floor(Math.random() * (max - min + 1)) + min;
-                    cell.innerText = num;
-                    cell.onclick = function() {
-                        this.classList.toggle('marked');
-                    };
-                }
-                card.appendChild(cell);
-            }
-        }
+        let letter = num <= 15 ? 'B' : num <= 30 ? 'I' : num <= 45 ? 'N' : num <= 60 ? 'G' : 'O';
+        document.getElementById('caller').innerText = `${letter}-${num}`;
 
-        function drawNumber() {
-            const letters = ['B', 'I', 'N', 'G', 'O'];
-            const randCol = Math.floor(Math.random() * 5);
-            const min = ranges[randCol][0];
-            const max = ranges[randCol][1];
-            const num = Math.floor(Math.random() * (max - min + 1)) + min;
-            document.getElementById('calledNo').innerText = letters[randCol] + '-' + num;
-        }
-    </script>
+        // Highlight Board
+        let bCell = document.getElementById(`board-${num}`);
+        if (bCell) bCell.classList.add('called');
+
+        // Auto-hit Player Card
+        let cCell = document.getElementById(`card-num-${num}`);
+        if (cCell) cCell.classList.add('hit');
+
+      }, 2500);
+    }
+
+    function showWinner() {
+      document.getElementById('winner-modal').style.display = 'flex';
+    }
+  </script>
 </body>
 </html>
