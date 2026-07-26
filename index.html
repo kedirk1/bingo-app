@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigat Bingo Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 15px;
+        }
+        h1 {
+            color: #f59e0b;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .called-number {
+            font-size: 36px;
+            font-weight: bold;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            margin: 15px auto;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .card {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            max-width: 320px;
+            margin: 0 auto;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 12px;
+        }
+        .header {
+            font-weight: bold;
+            font-size: 20px;
+            padding: 8px 0;
+            color: #38bdf8;
+        }
+        .cell {
+            background: #334155;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .cell.marked {
+            background: #10b981;
+            color: white;
+        }
+        .cell.free {
+            background: #f59e0b;
+            color: white;
+        }
+        .btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 15px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 320px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎯 ጋሸና ቢንጎ</h1>
+    <div class="called-number" id="calledNo">--</div>
+
+    <div class="card" id="bingoCard">
+        <div class="header">B</div>
+        <div class="header">I</div>
+        <div class="header">N</div>
+        <div class="header">G</div>
+        <div class="header">O</div>
+    </div>
+
+    <button class="btn" onclick="drawNumber()">ቁጥር አውጣ 🎲</button>
+
+    <script>
+        window.Telegram.WebApp.ready();
+
+        const card = document.getElementById('bingoCard');
+        const ranges = [[1,15], [16,30], [31,45], [46,60], [61,75]];
+        
+        // የካርቴላ ቁጥሮችን በዘፈቀደ መፍጠር
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                if (row === 2 && col === 2) {
+                    cell.innerText = '★';
+                    cell.classList.add('free');
+                } else {
+                    const min = ranges[col][0];
+                    const max = ranges[col][1];
+                    const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    cell.innerText = num;
+                    cell.onclick = function() {
+                        this.classList.toggle('marked');
+                    };
+                }
+                card.appendChild(cell);
+            }
+        }
+
+        function drawNumber() {
+            const letters = ['B', 'I', 'N', 'G', 'O'];
+            const randCol = Math.floor(Math.random() * 5);
+            const min = ranges[randCol][0];
+            const max = ranges[randCol][1];
+            const num = Math.floor(Math.random() * (max - min + 1)) + min;
+            document.getElementById('calledNo').innerText = letters[randCol] + '-' + num;
+        }
+    </script>
+</body>
+</html>
