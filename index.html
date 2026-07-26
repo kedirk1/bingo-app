@@ -7,23 +7,62 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #121212;
       color: #ffffff;
       text-align: center;
       margin: 0;
       padding: 15px;
     }
-    h2 { color: #0088cc; margin-top: 5px; }
+    h2 { color: #0088cc; margin-top: 5px; margin-bottom: 10px; }
+    
+    .card-select-box {
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #333;
+    }
+    label { font-size: 16px; display: block; margin-bottom: 8px; color: #bbb; }
+    input[type="number"] {
+      width: 120px;
+      padding: 8px;
+      font-size: 18px;
+      text-align: center;
+      border-radius: 5px;
+      border: 1px solid #0088cc;
+      background: #2a2a2a;
+      color: #fff;
+    }
+
+    .caller-box {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 15px 0;
+      padding: 12px;
+      background: linear-gradient(45deg, #0088cc, #005f9e);
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,136,204,0.3);
+    }
+
     .card-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 5px;
-      max-width: 320px;
+      gap: 6px;
+      max-width: 330px;
       margin: 15px auto;
       background: #222;
-      padding: 10px;
+      padding: 12px;
       border-radius: 10px;
+      border: 1px solid #444;
+    }
+    .card-header {
+      background: #0088cc;
+      color: #fff;
+      font-weight: bold;
+      padding: 8px 0;
+      border-radius: 4px;
+      font-size: 16px;
     }
     .card-cell {
       background: #333;
@@ -33,25 +72,27 @@
       font-size: 16px;
     }
     .card-cell.star { background: #ff9800; color: #000; }
-    .card-cell.hit { background: #4caf50; color: #fff; }
-    .caller-box {
-      font-size: 24px;
-      font-weight: bold;
-      margin: 15px 0;
-      padding: 10px;
-      background: #0088cc;
-      border-radius: 8px;
+    .card-cell.hit { background: #28a745 !important; color: #fff; animation: pulse 0.5s; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
     }
-    button {
+
+    .btn {
       background: #28a745;
       color: white;
       border: none;
-      padding: 12px 25px;
-      font-size: 18px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
-      margin-top: 10px;
+      margin: 5px;
     }
+    .btn-blue { background: #0088cc; }
+    
     .modal {
       display: none;
       position: fixed;
@@ -60,47 +101,109 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      z-index: 100;
     }
     .modal-content {
       background: #222;
       padding: 25px;
       border-radius: 12px;
-      border: 2px solid #4caf50;
+      border: 2px solid #28a745;
     }
   </style>
 </head>
 <body>
 
   <h2>Nigat Gashena Bingo</h2>
-  <div class="caller-box" id="caller">Ready to Play!</div>
-  
-  <div class="card-grid" id="card-grid"></div>
 
-  <button onclick="startGame()">Start Game</button>
+  <div class="card-select-box">
+    <label for="cardNumber">የካርድ ቁጥር ይምረጡ (1 - 300)፦</label>
+    <input type="number" id="cardNumber" min="1" max="300" value="1">
+    <button class="btn btn-blue" onclick="generateCard()">ካርድ ያዝ</button>
+  </div>
+
+  <div class="caller-box" id="caller">Ready!</div>
+  
+  <div class="card-grid">
+    <div class="card-header">B</div>
+    <div class="card-header">I</div>
+    <div class="card-header">N</div>
+    <div class="card-header">G</div>
+    <div class="card-header">O</div>
+  </div>
+
+  <div class="card-grid" id="card-grid" style="margin-top: 0;"></div>
+
+  <button class="btn" id="startBtn" onclick="startGame()" disabled style="opacity: 0.5;">ጨዋታ ጀምር</button>
 
   <div class="modal" id="winner-modal">
     <div class="modal-content">
-      <h1 style="color: #4caf50;">🎉 BINGO! 🎉</h1>
-      <p>እንኳን ደስ አለዎት! አሸንፈዋል!</p>
-      <button onclick="location.reload()">እንደገና ተጫወት</button>
+      <h1 style="color: #28a745;">🎉 BINGO! 🎉</h1>
+      <p>እንኳን ደስ አለዎት! ቢንጎ ሰርተዋል!</p>
+      <button class="btn" onclick="location.reload()">እንደገና ተጫወት</button>
     </div>
   </div>
 
   <script>
     Telegram.WebApp.ready();
 
-    const selectedNumbers = [
-      5, 18, 35, 52, 68,
-      12, 24, 41, 58, 73,
-      8, 29, '★', 49, 61,
-      3, 21, 33, 55, 70,
-      14, 27, 44, 60, 75
-    ];
+    let currentCard = [];
+
+    // Seeded random generator so card numbers 1-300 stay unique and constant per card ID
+    function pseudoRandom(seed) {
+      let x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function generateCard() {
+      let cardNum = parseInt(document.getElementById('cardNumber').value);
+      if (cardNum < 1 || cardNum > 300 || isNaN(cardNum)) {
+        alert("እባክዎን ከ 1 እስከ 300 ያለ ቁጥር ይምረጡ!");
+        return;
+      }
+
+      let seed = cardNum * 999;
+      let card = [];
+
+      let colB = [], colI = [], colN = [], colG = [], colO = [];
+
+      for (let i = 1; i <= 15; i++) colB.push(i);
+      for (let i = 16; i <= 30; i++) colI.push(i);
+      for (let i = 31; i <= 45; i++) colN.push(i);
+      for (let i = 46; i <= 60; i++) colG.push(i);
+      for (let i = 61; i <= 75; i++) colO.push(i);
+
+      let getUnique = (arr) => {
+        let res = [];
+        for (let i = 0; i < 5; i++) {
+          let idx = Math.floor(pseudoRandom(seed++) * arr.length);
+          res.push(arr.splice(idx, 1)[0]);
+        }
+        return res;
+      };
+
+      let b = getUnique(colB);
+      let iCol = getUnique(colI);
+      let n = getUnique(colN);
+      let g = getUnique(colG);
+      let o = getUnique(colO);
+
+      n[2] = '★'; // Center Free Space
+
+      currentCard = [];
+      for (let row = 0; row < 5; row++) {
+        currentCard.push(b[row], iCol[row], n[row], g[row], o[row]);
+      }
+
+      renderFullCard();
+      let startBtn = document.getElementById('startBtn');
+      startBtn.disabled = false;
+      startBtn.style.opacity = '1';
+    }
 
     function renderFullCard() {
       const cardGrid = document.getElementById('card-grid');
       cardGrid.innerHTML = '';
-      selectedNumbers.forEach(num => {
+      currentCard.forEach(num => {
         let cell = document.createElement('div');
         cell.className = 'card-cell' + (num === '★' ? ' star' : '');
         cell.innerText = num;
@@ -110,12 +213,15 @@
     }
 
     function startGame() {
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('startBtn').style.opacity = '0.5';
+
       let pool = Array.from({length: 75}, (_, i) => i + 1);
       pool.sort(() => Math.random() - 0.5);
       let calledNumbers = [];
 
       let gameInterval = setInterval(() => {
-        if (pool.length === 0 || calledNumbers.length >= 30) {
+        if (pool.length === 0 || calledNumbers.length >= 35) {
           clearInterval(gameInterval);
           document.getElementById('winner-modal').style.display = 'flex';
           return;
@@ -129,8 +235,6 @@
         if (cCell) cCell.classList.add('hit');
       }, 2000);
     }
-
-    renderFullCard();
   </script>
 </body>
 </html>
