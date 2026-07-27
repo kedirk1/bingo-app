@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Game</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-around;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .card-container {
+            background: #1e1e1e;
+            border: 2px solid #00ff66;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        th {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>ROOM 💎VIP💎</div>
+        <div>SOLD 10</div>
+        <div>TIME 47s</div>
+        <div style="color: #00ff66;">BALANCE 0.00 ETB</div>
+    </div>
+
+    <!-- ካርቴላ 1 -->
+    <div class="card-container">
+        <h3>ካርቴላ #34</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>B</th>
+                    <th>I</th>
+                    <th>N</th>
+                    <th>G</th>
+                    <th>O</th>
+                </tr>
+            </thead>
+            <tbody id="card1-body">
+                <!-- በኮድ የሚሞላ -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ካርቴላ 2 -->
+    <div class="card-container">
+        <h3>ካርቴላ #13</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>B</th>
+                    <th>I</th>
+                    <th>N</th>
+                    <th>G</th>
+                    <th>O</th>
+                </tr>
+            </thead>
+            <tbody id="card2-body">
+                <!-- በኮድ የሚሞላ -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // የተወሰነ ክልል ያላቸው ቁጥሮች ያለድግግሞሽ ማመንጫ
+        function getRandomNumbers(min, max, count) {
+            let numbers = [];
+            while(numbers.length < count) {
+                let r = Math.floor(Math.random() * (max - min + 1)) + min;
+                if(numbers.indexOf(r) === -1) numbers.push(r);
+            }
+            return numbers;
+        }
+
+        // ትክክለኛውን የቢንጎ ህግ የጠበቀ ካርቴላ ማመንጫ (B:1-15, I:16-30, N:31-45, G:46-60, O:61-75)
+        function generateBingoCard() {
+            return {
+                B: getRandomNumbers(1, 15, 5),
+                I: getRandomNumbers(16, 30, 5),
+                N: getRandomNumbers(31, 45, 5),
+                G: getRandomNumbers(46, 60, 5),
+                O: getRandomNumbers(61, 75, 5)
+            };
+        }
+
+        function renderCard(elementId) {
+            let card = generateBingoCard();
+            let tbody = document.getElementById(elementId);
+            tbody.innerHTML = "";
+            
+            for (let i = 0; i < 5; i++) {
+                let row = document.createElement("tr");
+                let cols = ['B', 'I', 'N', 'G', 'O'];
+                
+                cols.forEach(col => {
+                    let cell = document.createElement("td");
+                    cell.innerText = card[col][i];
+                    row.appendChild(cell);
+                });
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        // ገጹ ሲከፈት ካርቴላዎቹን መሙላት
+        window.onload = function() {
+            renderCard("card1-body");
+            renderCard("card2-body");
+        };
+    </script>
+
+</body>
+</html>
