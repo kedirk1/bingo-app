@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigat Gashena Bingo</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 10px;
+            gap: 5px;
+        }
+        .badge {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            padding: 8px 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            flex: 1;
+        }
+        .badge.room { background-color: #f1c40f; color: #000; border: none; }
+        .badge.balance { background-color: #27ae60; color: #fff; border: none; }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            width: 100%;
+            max-width: 400px;
+            background: #181818;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid #2c2c2c;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .number-cell {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            padding: 6px 0;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .number-cell.selected {
+            background-color: #f97316;
+            color: white;
+        }
+
+        .slots-section {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        .slot {
+            flex: 1;
+            border: 2px dashed #475569;
+            border-radius: 10px;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px;
+            color: #94a3b8;
+            font-size: 11px;
+            background: #1e1e1e;
+        }
+        .slot.filled {
+            border: 2px solid #27ae60;
+            color: #ffffff;
+            background: rgba(39, 174, 96, 0.05);
+        }
+        .slot-title {
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 4px;
+        }
+        .bingo-mini-table {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            width: 100%;
+            text-align: center;
+            font-size: 9px;
+            background: #111;
+            padding: 3px;
+            border-radius: 4px;
+        }
+        .bingo-mini-table div {
+            background: #2a2a2a;
+            color: #fff;
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+        .bingo-header {
+            color: #f1c40f !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="badge room">ROOM<br>💎 VIP 💎</div>
+        <div class="badge">SOLD<br><span id="sold-count">0</span></div>
+        <div class="badge">TIME<br><span id="timer">59s</span></div>
+        <div class="badge balance">BALANCE<br>0.00 ETB</div>
+    </div>
+
+    <div class="grid-container" id="number-grid"></div>
+
+    <div class="slots-section">
+        <div class="slot" id="slot-1">+<br>SLOT 1 EMPTY</div>
+        <div class="slot" id="slot-2">+<br>SLOT 2 EMPTY</div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('number-grid');
+        const slot1 = document.getElementById('slot-1');
+        const slot2 = document.getElementById('slot-2');
+        const soldCountSpan = document.getElementById('sold-count');
+        const timerSpan = document.getElementById('timer');
+        
+        let selectedNumbers = [];
+        let currentSold = 0;
+        let timeLeft = 59;
+
+        // Auto increment sold count
+        setInterval(() => {
+            if (currentSold < 290 && Math.random() > 0.4) {
+                currentSold += Math.floor(Math.random() * 3) + 1;
+                soldCountSpan.textContent = currentSold;
+            }
+        }, 3000);
+
+        // Countdown timer starting from 59 down to 1
+        setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                timeLeft = 59; // Reset for next game round
+            }
+            timerSpan.textContent = timeLeft + 's';
+        }, 1000);
+
+        // Generate numbers 1 to 300
+        for (let i = 1; i <= 300; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('number-cell');
+            cell.textContent = i;
+            
+            cell.addEventListener('click', () => {
+                if (cell.classList.contains('selected')) {
+                    cell.classList.remove('selected');
+                    selectedNumbers = selectedNumbers.filter(num => num !== i);
+                } else {
+                    if (selectedNumbers.length < 2) {
+                        cell.classList.add('selected');
+                        selectedNumbers.push(i);
+                    } else {
+                        alert('ሁለት ካርቴላዎች ብቻ መምረጥ ይችላሉ!');
+                    }
+                }
+                updateSlots();
+            });
+            grid.appendChild(cell);
+        }
+
+        // Generate pseudo 15 numbers based on card ID for BINGO display
+        function generateCardNumbers(cardId) {
+            let nums = [];
+            let start = ((cardId * 7) % 200) + 1;
+            for(let i = 0; i < 15; i++) {
+                nums.push((start + i * 3) % 75 + 1);
+            }
+            return nums;
+        }
+
+        function createBingoTableHTML(cardId) {
+            const nums = generateCardNumbers(cardId);
+            let html = `<div class="slot-title">ካርቴላ #${cardId}</div>`;
+            html += `<div class="bingo-mini-table">`;
+            ['B','I','N','G','O'].forEach(h => {
+                html += `<div class="bingo-header">${h}</div>`;
+            });
+            // 3 rows x 5 cols = 15 numbers
+            for(let r = 0; r < 3; r++) {
+                for(let c = 0; c < 5; c++) {
+                    html += `<div>${nums[r*5 + c]}</div>`;
+                }
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function updateSlots() {
+            if (selectedNumbers.length > 0) {
+                slot1.innerHTML = createBingoTableHTML(selectedNumbers[0]);
+                slot1.classList.add('filled');
+            } else {
+                slot1.innerHTML = `+<br>SLOT 1 EMPTY`;
+                slot1.classList.remove('filled');
+            }
+
+            if (selectedNumbers.length > 1) {
+                slot2.innerHTML = createBingoTableHTML(selectedNumbers[1]);
+                slot2.classList.add('filled');
+            } else {
+                slot2.innerHTML = `+<br>SLOT 2 EMPTY`;
+                slot2.classList.remove('filled');
+            }
+        }
+    </script>
+</body>
+</html>
