@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigat Gashena Bingo</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            color: #ffffff;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+            gap: 6px;
+        }
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            flex: 1;
+        }
+        .badge.room { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; border: none; }
+        .badge.balance { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 330px;
+            overflow-y: auto;
+        }
+        .number-cell {
+            background-color: #334155;
+            color: #f8fafc;
+            padding: 10px 0;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .number-cell:hover {
+            background-color: #475569;
+        }
+        .number-cell.selected {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            transform: scale(1.05);
+        }
+        .number-cell.disabled {
+            background-color: #1e293b;
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .slots-section {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        .slot {
+            flex: 1;
+            border: 2px dashed #64748b;
+            border-radius: 14px;
+            height: 75px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 12px;
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .slot.filled {
+            border: 2px solid #10b981;
+            color: #34d399;
+            font-weight: bold;
+            background: rgba(16, 185, 129, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="badge room">ROOM<br>💎 VIP 💎</div>
+        <div class="badge">SOLD<br><span id="sold-count">24</span></div>
+        <div class="badge">TIME<br><span id="timer">60s</span></div>
+        <div class="badge balance">BALANCE<br>0.00 ETB</div>
+    </div>
+
+    <div class="grid-container" id="number-grid">
+        <!-- Numbers 1 to 96 generated via JS -->
+    </div>
+
+    <div class="slots-section">
+        <div class="slot" id="slot-1">+<br>SLOT 1 EMPTY</div>
+        <div class="slot" id="slot-2">+<br>SLOT 2 EMPTY</div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('number-grid');
+        const slot1 = document.getElementById('slot-1');
+        const slot2 = document.getElementById('slot-2');
+        const soldCountSpan = document.getElementById('sold-count');
+        const timerSpan = document.getElementById('timer');
+        
+        let selectedNumbers = [];
+        let currentSold = 24;
+        let timeLeft = 60;
+
+        // Auto update Sold cards count randomly
+        setInterval(() => {
+            if (Math.random() > 0.6 && currentSold < 90) {
+                currentSold += Math.floor(Math.random() * 2) + 1;
+                soldCountSpan.textContent = currentSold;
+            }
+        }, 4000);
+
+        // Auto countdown Timer
+        setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                timeLeft = 60; // Reset timer for new round
+            }
+            timerSpan.textContent = timeLeft + 's';
+        }, 1000);
+
+        // Generate numbers 1 to 96
+        for (let i = 1; i <= 96; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('number-cell');
+            cell.textContent = i;
+            
+            // Randomly disable some numbers
+            if ([3, 12, 19, 28, 35, 45, 66, 73, 83, 88].includes(i)) {
+                cell.classList.add('disabled');
+            } else {
+                cell.addEventListener('click', () => {
+                    if (cell.classList.contains('selected')) {
+                        cell.classList.remove('selected');
+                        selectedNumbers = selectedNumbers.filter(num => num !== i);
+                    } else {
+                        if (selectedNumbers.length < 2) {
+                            cell.classList.add('selected');
+                            selectedNumbers.push(i);
+                        } else {
+                            alert('ሁለት ካርቴላዎች ብቻ መምረጥ ይችላሉ!');
+                        }
+                    }
+                    updateSlots();
+                });
+            }
+            grid.appendChild(cell);
+        }
+
+        function updateSlots() {
+            if (selectedNumbers.length > 0) {
+                slot1.innerHTML = `ካርቴላ #${selectedNumbers[0]}`;
+                slot1.classList.add('filled');
+            } else {
+                slot1.innerHTML = `+<br>SLOT 1 EMPTY`;
+                slot1.classList.remove('filled');
+            }
+
+            if (selectedNumbers.length > 1) {
+                slot2.innerHTML = `ካርቴላ #${selectedNumbers[1]}`;
+                slot2.classList.add('filled');
+            } else {
+                slot2.innerHTML = `+<br>SLOT 2 EMPTY`;
+                slot2.classList.remove('filled');
+            }
+        }
+    </script>
+</body>
+</html>
