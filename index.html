@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Game - 300 Cards</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-around;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            padding: 10px;
+        }
+        .card-container {
+            background: #1e1e1e;
+            border: 2px solid #00ff66;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        th {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>ROOM 💎VIP💎</div>
+        <div>SOLD <span id="sold-count">0</span></div>
+        <div>TIME <span id="time-count">00s</span></div>
+        <div style="color: #00ff66;">BALANCE 0.00 ETB</div>
+    </div>
+
+    <!-- 300 ካርቴላዎች የሚጫኑበት ቦታ -->
+    <div class="cards-grid" id="cards-wrapper">
+        <!-- በጃቫስክሪፕት በኮድ ይሞላል -->
+    </div>
+
+    <script>
+        // የተወሰነ ክልል ያላቸው ቁጥሮች ያለድግግሞሽ ማመንጫ
+        function getRandomNumbers(min, max, count) {
+            let numbers = [];
+            while(numbers.length < count) {
+                let r = Math.floor(Math.random() * (max - min + 1)) + min;
+                if(numbers.indexOf(r) === -1) numbers.push(r);
+            }
+            return numbers;
+        }
+
+        // ትክክለኛውን የቢንጎ ህግ የጠበቀ ካርቴላ ማመንጫ (B:1-15, I:16-30, N:31-45, G:46-60, O:61-75)
+        function generateBingoCard() {
+            return {
+                B: getRandomNumbers(1, 15, 5),
+                I: getRandomNumbers(16, 30, 5),
+                N: getRandomNumbers(31, 45, 5),
+                G: getRandomNumbers(46, 60, 5),
+                O: getRandomNumbers(61, 75, 5)
+            };
+        }
+
+        // 300 ካርቴላዎችን በድረ-ገጹ ላይ ማመንጨት
+        function renderAllCards() {
+            let wrapper = document.getElementById("cards-wrapper");
+            wrapper.innerHTML = "";
+
+            for (let c = 1; c <= 300; c++) {
+                let cardData = generateBingoCard();
+                
+                let cardDiv = document.createElement("div");
+                cardDiv.className = "card-container";
+                
+                let title = document.createElement("h3");
+                title.innerText = `ካርቴላ #${c}`;
+                cardDiv.appendChild(title);
+
+                let table = document.createElement("table");
+                let thead = document.createElement("thead");
+                thead.innerHTML = `<tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>`;
+                table.appendChild(thead);
+
+                let tbody = document.createElement("tbody");
+                for (let i = 0; i < 5; i++) {
+                    let row = document.createElement("tr");
+                    let cols = ['B', 'I', 'N', 'G', 'O'];
+                    
+                    cols.forEach(col => {
+                        let cell = document.createElement("td");
+                        cell.innerText = cardData[col][i];
+                        row.appendChild(cell);
+                    });
+                    tbody.appendChild(row);
+                }
+                table.appendChild(tbody);
+                cardDiv.appendChild(table);
+                wrapper.appendChild(cardDiv);
+            }
+        }
+
+        // ገጹ ሲከፈት 300ቱን ካርቴላዎች መጫን
+        window.onload = function() {፧
+            renderAllCards();
+        };
+    </script>
+
+</body>
+</html>
