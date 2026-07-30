@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Game</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 5px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-around;
+            background: #1e1e1e;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 5px;
+        }
+        .card-container {
+            background: #1e1e1e;
+            border: 2px solid #00ff66;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .card-container h3 {
+            margin: 0 0 8px 0;
+            color: #ffcc00;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #444;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        th {
+            color: #ffcc00;
+            background-color: #252525;
+        }
+        .free-cell {
+            color: #00ff66;
+            background-color: #1a3322;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>ROOM 💎VIP💎</div>
+        <div>SOLD <span id="sold-count">0</span></div>
+        <div>TIME <span id="time-count">00s</span></div>
+        <div style="color: #00ff66;">BALANCE 0.00 ETB</div>
+    </div>
+
+    <!-- ካርቴላዎች የሚጫኑበት ቦታ -->
+    <div class="cards-grid" id="cards-wrapper">
+        <!-- በኮድ ይሞላል -->
+    </div>
+
+    <script>
+        function getRandomNumbers(min, max, count) {
+            let numbers = [];
+            while(numbers.length < count) {
+                let r = Math.floor(Math.random() * (max - min + 1)) + min;
+                if(numbers.indexOf(r) === -1) numbers.push(r);
+            }
+            return numbers;
+        }
+
+        function generateBingoCard() {
+            let card = {
+                B: getRandomNumbers(1, 15, 5),
+                I: getRandomNumbers(16, 30, 5),
+                N: getRandomNumbers(31, 45, 5),
+                G: getRandomNumbers(46, 60, 5),
+                O: getRandomNumbers(61, 75, 5)
+            };
+            // መሃከለኛውን ሳጥን (በ N አምድ 3ኛ ረድፍ - index 2) ነፃ (FREE) ማድረግ
+            card.N[2] = "⭐"; 
+            return card;
+        }
+
+        function renderAllCards() {
+            let wrapper = document.getElementById("cards-wrapper");
+            wrapper.innerHTML = "";
+
+            for (let c = 1; c <= 300; c++) {
+                let cardData = generateBingoCard();
+                
+                let cardDiv = document.createElement("div");
+                cardDiv.className = "card-container";
+                
+                let title = document.createElement("h3");
+                title.innerText = `ካርቴላ #${c}`;
+                cardDiv.appendChild(title);
+
+                let table = document.createElement("table");
+                let thead = document.createElement("thead");
+                thead.innerHTML = `<tr><th>B</th><th>I</th><th>N</th><th>G</th><th>O</th></tr>`;
+                table.appendChild(thead);
+
+                let tbody = document.createElement("tbody");
+                for (let i = 0; i < 5; i++) {
+                    let row = document.createElement("tr");
+                    let cols = ['B', 'I', 'N', 'G', 'O'];
+                    
+                    cols.forEach(col => {
+                        let cell = document.createElement("td");
+                        cell.innerText = cardData[col][i];
+                        
+                        // የመሃልኛውን ሴል በኮከብ/በነጻ ስታይል ማስተካከል
+                        if (col === 'N' && i === 2) {
+                            cell.className = "free-cell";
+                        }
+                        
+                        row.appendChild(cell);
+                    });
+                    tbody.appendChild(row);
+                }
+                table.appendChild(tbody);
+                cardDiv.appendChild(table);
+                wrapper.appendChild(cardDiv);
+            }
+        }
+
+        window.onload = function() {
+            renderAllCards();
+        };
+    </script>
+
+</body>
+</html>
